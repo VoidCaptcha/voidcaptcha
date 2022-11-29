@@ -1,0 +1,54 @@
+{
+    "name": "@voidcaptcha/core",
+    "version": "0.1.0",
+    "description": "VoidCaptcha is a free and open source multi-solution CAPTCHA library to keep your forms bot-free.",
+    "keywords": [
+        "captcha",
+        "front-end",
+        "forms",
+        "web",
+        "rat"
+    ],
+    "author": "Sam <sam@rat.md> (https://rat.md)",
+    "license": "MIT",
+    "copyright": "rat.md <info@rat.md>",
+    "homepage": "https:/void-captcha.com/",
+    "bugs": {
+        "url": "https://github.com/VoidCaptcha/voidcaptcha",
+        "email": "info@rat.md"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/VoidCaptcha/voidcaptcha.git"
+    },
+    "funding": [
+        {
+            "type": "buymeacoffee",
+            "url": "https://buymeacoff.ee/ratmd"
+        }
+    ],
+    "scripts": {
+        "build": "rollup -c",
+        "watch": "rollup -c --watch"
+    },
+    "main": "dist/js/voidcaptcha.bundle.js",
+    "module": "dist/esm/voidcaptcha.bundle.js",
+    "browser": "dist/js/voidcaptcha.bundle.js",
+    "jsdeliver": "dist/js/voidcaptcha.bundle.js",
+    "typings": "src/ts/types/index.ts",
+    "files": [
+        "dist/*/**",
+        "src/ts/types/*",
+        "CHANGELOG.md"
+    ],
+    "reveal": true,
+    "dependencies": {},
+    "devDependencies": {
+        "@rollup/plugin-replace": "^5.0.1",
+        "@rollup/plugin-typescript": "^9.0.2",
+        "rollup": "^3.2.5",
+        "rollup-plugin-terser": "^7.0.2",
+        "tslib": "^2.4.1",
+        "typescript": "^4.8.4"
+    }
+}
