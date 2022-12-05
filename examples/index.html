@@ -5,11 +5,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VoidCaptcha Example Page</title>
-    <script src="../js/voidcaptcha.bundle.min.js" defer></script>
+    <script src="../dist/js/void-captcha.bundle.min.js" defer></script>
 </head>
 <body>
     <form>
         <div data-void-captcha="SHA512Hash"></div>
     </form>
+
+    <script>
+        window.addEventListener('VoidCaptcha::loaded', (ev) => {
+            console.log(VoidCaptcha);
+            const captcha = new VoidCaptcha({
+                providers: [
+                    new VoidCaptcha.Providers.Detect(),
+                    new VoidCaptcha.Providers.Image(),
+                    new VoidCaptcha.Providers.Pow(),
+                    new VoidCaptcha.Providers.Text(),
+                    new VoidCaptcha.Providers.Slider(),
+                ]
+            });
+            captcha.create('[data-void-captcha]');
+
+        });
+    </script>
 </body>
 </html>

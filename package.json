@@ -38,16 +38,19 @@
     "typings": "src/ts/types/index.ts",
     "files": [
         "dist/*/**",
-        "src/ts/types/*",
+        "src/types/*",
         "CHANGELOG.md"
     ],
     "reveal": true,
-    "dependencies": {},
+    "dependencies": {
+        "rollup-plugin-scss": "^4.0.0"
+    },
     "devDependencies": {
         "@rollup/plugin-replace": "^5.0.1",
         "@rollup/plugin-typescript": "^9.0.2",
         "rollup": "^3.2.5",
         "rollup-plugin-terser": "^7.0.2",
+        "sass": "^1.56.1",
         "tslib": "^2.4.1",
         "typescript": "^4.8.4"
     }

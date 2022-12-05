@@ -1,15 +1,20 @@
 
-import { PureCAPTCHA } from './pure-captcha';
+import VoidCaptcha from './voidcaptcha';
 import {
-    PureCAPTCHA_Image,
-    PureCAPTCHA_Text,
-    PureCAPTCHA_Slider
-} from './captchas';
+    VoidCaptcha_DetectProvider,
+    VoidCaptcha_ImageProvider,
+    VoidCaptcha_PowProvider,
+    VoidCaptcha_TextProvider,
+    VoidCaptcha_SliderProvider
+} from './providers';
 
-export default PureCAPTCHA;
-export {
-    PureCAPTCHA,
-    PureCAPTCHA_Image,
-    PureCAPTCHA_Slider,
-    PureCAPTCHA_Text
+
+VoidCaptcha['Providers'] = {
+    Detect: VoidCaptcha_DetectProvider,
+    Image: VoidCaptcha_ImageProvider,
+    Pow: VoidCaptcha_PowProvider,
+    Text: VoidCaptcha_TextProvider,
+    Slider: VoidCaptcha_SliderProvider
 };
+
+export default VoidCaptcha;
