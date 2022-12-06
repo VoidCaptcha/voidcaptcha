@@ -188,31 +188,23 @@
         }
     }
 
-    class VoidCaptcha_ImageProvider {
-        constructor() {
-            this.placeholder = 'Select  all similar images';
-        }
+    class VoidCaptcha_PowProvider {
         get name() {
-            return 'image';
+            return 'pow';
         }
         get passive() {
-            return false;
+            return true;
         }
         init() {
         }
-        draw(canvas, response) {
-            let label = canvas.parentElement.previousElementSibling.querySelector('label');
-            label.innerText = '';
-            label.dataset.placeholder = this.placeholder;
-        }
     }
 
-    class VoidCaptcha_SliderProvider {
+    class VoidCaptcha_PuzzleProvider {
         constructor() {
             this.placeholder = 'Slide until the piece fits';
         }
         get name() {
-            return 'slider';
+            return 'puzzle';
         }
         get passive() {
             return false;
@@ -252,14 +244,67 @@
         }
     }
 
-    class VoidCaptcha_PowProvider {
+    class VoidCaptcha_SimilarImageProvider {
+        constructor() {
+            this.placeholder = 'Select  all similar images';
+        }
         get name() {
-            return 'pow';
+            return 'similar-image';
         }
         get passive() {
-            return true;
+            return false;
         }
         init() {
+        }
+        draw(canvas, response) {
+            let label = canvas.parentElement.previousElementSibling.querySelector('label');
+            label.innerText = '';
+            label.dataset.placeholder = this.placeholder;
+        }
+    }
+
+    class VoidCaptcha_SlidePuzzleProvider {
+        constructor() {
+            this.placeholder = 'Slide until the piece fits';
+        }
+        get name() {
+            return 'slide-puzzle';
+        }
+        get passive() {
+            return false;
+        }
+        init() {
+        }
+        draw(canvas, response, reload, write) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.ctx.save();
+            const image = new Image();
+            image.onload = () => {
+                this.ctx.drawImage(image, 0, 0);
+            };
+            image.src = response['source'];
+            const piece = new Image();
+            piece.onload = (event) => {
+                this.ctx.drawImage(piece, 0, 30);
+            };
+            piece.src = response['piece'];
+            let label = canvas.parentElement.previousElementSibling.querySelector('label');
+            label.contentEditable = 'true';
+            label.innerText = '';
+            label.dataset.placeholder = this.placeholder;
+            let slider = document.createElement('INPUT');
+            slider.type = 'range';
+            slider.value = '0';
+            slider.min = '0';
+            slider.max = '100';
+            slider.addEventListener('input', (event) => {
+                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+                this.ctx.drawImage(image, 0, 0);
+                this.ctx.drawImage(piece, (canvas.width - piece.width) / 100 * parseInt(slider.value), 30);
+                write(((canvas.width - piece.width) / 100 * parseInt(slider.value)).toString());
+            });
+            canvas.parentElement.appendChild(slider);
         }
     }
 
@@ -302,11 +347,12 @@
     }
 
     VoidCaptcha['Providers'] = {
-        Detect: VoidCaptcha_DetectProvider,
-        Image: VoidCaptcha_ImageProvider,
-        Pow: VoidCaptcha_PowProvider,
-        Text: VoidCaptcha_TextProvider,
-        Slider: VoidCaptcha_SliderProvider
+        VoidCaptcha_DetectProvider,
+        VoidCaptcha_PowProvider,
+        VoidCaptcha_PuzzleProvider,
+        VoidCaptcha_SimilarImageProvider,
+        VoidCaptcha_SlidePuzzleProvider,
+        VoidCaptcha_TextProvider
     };
 
     return VoidCaptcha;

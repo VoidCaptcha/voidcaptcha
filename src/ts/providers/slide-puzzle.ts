@@ -1,6 +1,6 @@
 import { VoidCaptcha_ActiveProvider } from "src/types";
 
-class VoidCaptcha_SliderProvider implements VoidCaptcha_ActiveProvider {
+class VoidCaptcha_SlidePuzzleProvider implements VoidCaptcha_ActiveProvider {
 
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -10,7 +10,7 @@ class VoidCaptcha_SliderProvider implements VoidCaptcha_ActiveProvider {
      * Unique Provider Name
      */
     get name() {
-        return 'slider';
+        return 'slide-puzzle';
     }
 
     /**
@@ -70,4 +70,4 @@ class VoidCaptcha_SliderProvider implements VoidCaptcha_ActiveProvider {
 
 }
 
-export default VoidCaptcha_SliderProvider;
+export default VoidCaptcha_SlidePuzzleProvider;

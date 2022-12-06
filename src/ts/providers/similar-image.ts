@@ -1,6 +1,6 @@
 import { VoidCaptcha_ActiveProvider } from "src/types";
 
-class VoidCaptcha_ImageProvider implements VoidCaptcha_ActiveProvider {
+class VoidCaptcha_SimilarImageProvider implements VoidCaptcha_ActiveProvider {
 
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -10,7 +10,7 @@ class VoidCaptcha_ImageProvider implements VoidCaptcha_ActiveProvider {
      * Unique Provider Name
      */
     get name() {
-        return 'image';
+        return 'similar-image';
     }
 
     /**
@@ -42,4 +42,4 @@ class VoidCaptcha_ImageProvider implements VoidCaptcha_ActiveProvider {
 
 }
 
-export default VoidCaptcha_ImageProvider;
+export default VoidCaptcha_SimilarImageProvider;
