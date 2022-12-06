@@ -11,11 +11,11 @@ because **you host everything on your own server**. We do not provide a public S
 however we still provide some "private" SaaS access for a few european companies and people.
 
 **Still not convinced?**
-- Visit [void-captcha.com](https://void-captcha.com) for more details
-- Read more about [all the Features of VoidCaptcha](https://void-captcha.com/features)
-- Play around in our [online Playground](https://playground.void-captcha.com)
-- Find a solution [to integrate VoidCaptcha on your Website](https://playground.void-captcha.com/integrate)
-- Ask for help [on our official Forum](https://help.void-captcha.com) or [write us a mail](mailto:help@void-captcha.com)
+- Visit [voidcaptcha.com](https://voidcaptcha.com) for more details
+- Read more about [all the Features of VoidCaptcha](https://voidcaptcha.com/features)
+- Play around in our [online Playground](https://playground.voidcaptcha.com)
+- Find a solution [to integrate VoidCaptcha on your Website](https://playground.voidcaptcha.com/integrate)
+- Ask for help [on our official Forum](https://help.voidcaptcha.com) or [write us a mail](mailto:help@voidcaptcha.com)
 
 
 VoidCaptcha Packages
@@ -25,7 +25,7 @@ an corresponding back-end library or a respective plugin / module for your Conte
 System or Application Framework. The following list contains all official libraries and extensions:
 
 **Libraries**
-- [VoidCaptcha - Frontend JavaScript Library](https://github.com/VoidCaptcha/voidcaptcha) - **You're here**
+- [VoidCaptcha - Frontend JavaScript Library](https://github.com/VoidCaptcha/voidcaptcha) <- **You're here**
 - [VoidCaptcha - node.js Library](https://github.com/VoidCaptcha/voidcaptcha.js)
 - [VoidCaptcha - PHP Library](https://github.com/VoidCaptcha/voidcaptcha.php)
 - [VoidCaptcha - Python Library](https://github.com/VoidCaptcha/voidcaptcha.py)
