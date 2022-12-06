@@ -1,5 +1,5 @@
-VoidCaptcha - Sends the bots into the void
-==========================================
+VoidCaptcha - Sends bots into the void
+======================================
 **VoidCaptcha** is a free and open source self-hosted multi-solution CAPTCHA library, which provides 
 different well-known and tested types and modes such as text and image recognition, slider puzzles, 
 proof-of-work (PoW) technique and more.
