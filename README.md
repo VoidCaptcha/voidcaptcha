@@ -20,9 +20,10 @@ however we still provide some "private" SaaS access for a few european companies
 
 VoidCaptcha Packages
 --------------------
-**This repository contains the JavaScript part of VoidCaptcha**, to get VoidCaptcha working you need 
-an corresponding back-end library or a respective plugin / module for your Content Management 
-System or Application Framework. The following list contains all official libraries and extensions:
+**This repository contains the Front-End JavaScript library of VoidCaptcha**, to get VoidCaptcha 
+working you need a corresponding back-end library or a respective plugin / module for your Content 
+Management System or Application Framework. Below you'll find all official VoidCaptcha packages and
+libraries:
 
 **Front-End**
 - `[X]` [VoidCaptcha - Frontend JavaScript Library](https://github.com/VoidCaptcha/voidcaptcha) <- **You're here**
