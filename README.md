@@ -26,23 +26,25 @@ Management System or Application Framework. Below you'll find all official VoidC
 libraries:
 
 **Front-End**
-- `[X]` [VoidCaptcha - Frontend JavaScript Library](https://github.com/VoidCaptcha/voidcaptcha) <- **You're here**
+- [VoidCaptcha - Frontend JavaScript Library](https://github.com/VoidCaptcha/voidcaptcha) `<-` **You're here**
+- [VoidCaptcha - Vue Component](https://github.com/VoidCaptcha/voidcaptcha-vue)
+- [VoidCaptcha - WebComponent](https://github.com/VoidCaptcha/voidcaptcha-webc)
 
 **Back-End Libraries**
-- `[ ]` [VoidCaptcha - node.js Library](https://github.com/VoidCaptcha/voidcaptcha.js)
-- `[ ]` [VoidCaptcha - PHP Library](https://github.com/VoidCaptcha/voidcaptcha.php)
-- `[ ]` [VoidCaptcha - Python Library](https://github.com/VoidCaptcha/voidcaptcha.py)
+- [VoidCaptcha - node.js Library](https://github.com/VoidCaptcha/voidcaptcha.js)
+- [VoidCaptcha - PHP Library](https://github.com/VoidCaptcha/voidcaptcha.php)
+- [VoidCaptcha - Python Library](https://github.com/VoidCaptcha/voidcaptcha.py)
 
 **CMS Plugins**
-- `[ ]` PHP: [VoidCaptcha for OctoberCMS](https://github.com/VoidCaptcha/oc-voidcaptcha-plugin)
-- `[ ]` PHP: [VoidCaptcha for WordPress](https://github.com/VoidCaptcha/wp-voidcaptcha-plugin)
-- `[ ]` Python: [VoidCaptcha for DjangoCMS](https://github.com/VoidCaptcha/django-cms-voidcaptcha)
-- `[ ]` Python: [VoidCaptcha for Wagtail](https://github.com/VoidCaptcha/wagtail-voidcaptcha)
+- PHP: [VoidCaptcha for OctoberCMS](https://github.com/VoidCaptcha/oc-voidcaptcha-plugin)
+- PHP: [VoidCaptcha for WordPress](https://github.com/VoidCaptcha/wp-voidcaptcha-plugin)
+- Python: [VoidCaptcha for DjangoCMS](https://github.com/VoidCaptcha/django-cms-voidcaptcha)
+- Python: [VoidCaptcha for Wagtail](https://github.com/VoidCaptcha/wagtail-voidcaptcha)
 
 **Framework Extensions**
-- `[ ]` PHP: [VoidCaptcha for Laravel/Lumen](https://github.com/VoidCaptcha/laravel-voidcaptcha)
-- `[ ]` PHP: [VoidCaptcha for SlimPHP](https://github.com/VoidCaptcha/slim-voidcaptcha)
-- `[ ]` Python: [VoidCaptcha for Django](https://github.com/VoidCaptcha/django-voidcaptcha)
+- PHP: [VoidCaptcha for Laravel/Lumen](https://github.com/VoidCaptcha/laravel-voidcaptcha)
+- PHP: [VoidCaptcha for SlimPHP](https://github.com/VoidCaptcha/slim-voidcaptcha)
+- Python: [VoidCaptcha for Django](https://github.com/VoidCaptcha/django-voidcaptcha)
 
 
 Available CAPTCHAs
