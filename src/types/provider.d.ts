@@ -1,44 +1,55 @@
+import { VoidCaptcha_BotScore } from "./common";
+import { VoidCaptcha_Config } from "./config";
 
-export interface VoidCaptcha_ActiveProvider {
-
+export interface VoidCaptcha_BaseProvider {
+    
     /**
-     * Unique Provider Name
+     * Unique Provider Name.
      */
     readonly name: string;
 
     /**
-     * Boolean State about provider type
+     * Boolean State about the Provider type.
+     */
+    readonly passive: boolean;
+
+    /**
+     * Initialize Provider
+     * @param config Main VoidCaptcha configuration.
+     */
+    init(config: VoidCaptcha_Config): void;
+
+}
+
+export interface VoidCaptcha_ActiveProvider extends VoidCaptcha_BaseProvider {
+
+    /**
+     * Boolean State about the Provider type.
      */
     readonly passive: false;
 
     /**
-     * Initialize Provider
+     * Draw Provider
+     * @param canvas The main canvas element, where the puzzle must be drawn.
+     * @param response The main server response containing the puzzle details.
+     * @param write A callback function to write the puzzle solution.
      */
-    init(): void;
-
-    /**
-     * Draw Provider (for active providers only)
-     */
-    draw(canvas: HTMLCanvasElement, response: unknown, reload: () => Promise<unknown>, write: (checksum: string) => void): void;
+    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void;
 
 }
 
-export interface VoidCaptcha_PassiveProvider {
+export interface VoidCaptcha_PassiveProvider extends VoidCaptcha_BaseProvider {
 
     /**
-     * Unique Provider Name
-     */
-    readonly name: string;
-
-    /**
-     * Boolean State about provider type
+     * Boolean State about the Provider type.
      */
     readonly passive: true;
 
     /**
-     * Initialize Provider
+     * Process Provider
+     * @param score The BotScore object handler.
      */
-    init(): void;
+    process(score: VoidCaptcha_BotScore): Promise<VoidCaptcha_BotScore>;
 
 }
 

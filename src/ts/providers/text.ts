@@ -33,8 +33,12 @@ class VoidCaptcha_TextProvider implements VoidCaptcha_ActiveProvider {
      */
     draw(canvas: HTMLCanvasElement, response: unknown, reload: () => Promise<unknown>, write: (checksum: string) => void): void
     {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
+        if (typeof this.ctx !== 'undefined') {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        } else {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+        }
 
         const image = new Image();
         image.onload = () => {
@@ -50,11 +54,6 @@ class VoidCaptcha_TextProvider implements VoidCaptcha_ActiveProvider {
 
         label.addEventListener('keyup', (event) => {
             let value = label.innerText.trim();
-            if (value.length > 0) {
-                label.dataset.placeholder = '';
-            } else {
-                label.dataset.placeholder = this.placeholder;
-            }
             write(value);
         });
     }

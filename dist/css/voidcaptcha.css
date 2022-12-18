@@ -1,7 +1,19 @@
+@keyframes void-spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
 .void-captcha {
   width: 100%;
+  z-index: 20;
   display: inline-block;
   position: relative;
+}
+.void-captcha.open {
+  z-index: 30;
 }
 .void-captcha .void-captcha-field {
   width: 100%;
@@ -13,25 +25,30 @@
   width: 100%;
   margin: 0;
   padding: 0.375rem 0.75rem;
-  display: block;
+  display: flex;
   position: relative;
+  align-items: center;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
   border: 1px solid lightgray;
   border-radius: 0.2rem;
+  outline: none;
 }
 .void-captcha .void-captcha-field label[contenteditable=true] {
   cursor: text;
 }
-.void-captcha .void-captcha-field label::before {
-  content: attr(data-placeholder);
-  opacity: 0.5;
-  position: absolute;
-  pointer-events: none;
-}
-.void-captcha .void-captcha-field:hover label {
+.void-captcha .void-captcha-field label:hover, .void-captcha .void-captcha-field label[contenteditable=true]:focus {
   border-color: #6610f2;
+}
+.void-captcha .void-captcha-field label::before {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.5rem;
+  content: "";
+  display: inline-block;
+  border: 3px solid lightgray;
+  border-radius: 50%;
 }
 .void-captcha .void-captcha-field a {
   right: 0.75rem;
@@ -42,16 +59,63 @@
   font-size: 0.7rem;
   text-decoration: none;
 }
+.void-captcha[data-void-captcha-state=error] label {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+.void-captcha[data-void-captcha-state=error] label::before {
+  border: 0;
+  background-size: 22px 22px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3E%3Cpath fill='%23dc3545' d='M400 145.49L366.51 112L256 222.51L145.49 112L112 145.49L222.51 256L112 366.51L145.49 400L256 289.49L366.51 400L400 366.51L289.49 256L400 145.49z'/%3E%3C/svg%3E");
+  background-position: center center;
+}
+.void-captcha[data-void-captcha-state=success] label,
+.void-captcha[data-void-captcha-state=success] label:hover {
+  color: #198754;
+  border-color: #198754;
+}
+.void-captcha[data-void-captcha-state=success] label::before {
+  border: 0;
+  background-size: 20px 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23198754' stroke-linecap='square' stroke-miterlimit='10' stroke-width='44' d='M416 128L192 384l-96-96'/%3E%3C/svg%3E");
+  background-position: center center;
+}
+.void-captcha[data-void-captcha-state=pending] label::before {
+  border-color: #6610f2;
+  border-right-color: transparent;
+  animation: void-spinner linear infinite 0.75s;
+}
 .void-captcha .void-captcha-popover {
   top: 100%;
   left: 0;
   max-width: 300px;
-  padding: 0.375rem 0.75rem;
+  padding: 0.75rem;
   display: none;
   position: absolute;
   border: 1px solid lightgray;
   border-radius: 0.2rem;
   background-color: white;
+}
+.void-captcha .void-captcha-popover canvas {
+  display: block;
+}
+.void-captcha .void-captcha-popover button {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.2rem;
+  outline: none;
+  background-color: white;
+}
+.void-captcha .void-captcha-popover button svg {
+  margin-right: 0.15rem;
+}
+.void-captcha .void-captcha-actions {
+  display: flex;
+  margin-top: 0.15rem;
+  justify-content: space-between;
 }
 .void-captcha.open .void-captcha-popover {
   display: block;

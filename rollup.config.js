@@ -1,5 +1,6 @@
 
 const replace = require('@rollup/plugin-replace');
+const commonjs = require('@rollup/plugin-commonjs');
 const scss = require('rollup-plugin-scss');
 const typescript = require('@rollup/plugin-typescript');
 const { terser } = require('rollup-plugin-terser');
@@ -57,6 +58,7 @@ module.exports = (() => {
             input: 'src/ts/index.ts',
             output: output('js'),
             plugins: [
+                commonjs({}),
                 replace({
                     preventAssignment: true,
                     values: {
@@ -77,6 +79,7 @@ module.exports = (() => {
             input: 'src/ts/index-esm.ts',
             output: output('esm'),
             plugins: [
+                commonjs({}),
                 replace({
                     preventAssignment: true,
                     values: {

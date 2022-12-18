@@ -2,7 +2,7 @@
 import VoidCaptcha from './voidcaptcha';
 import {
     VoidCaptcha_DetectProvider,
-    VoidCaptcha_PowProvider,
+    VoidCaptcha_ProofOfWorkProvider,
     VoidCaptcha_PuzzleProvider,
     VoidCaptcha_SimilarImageProvider,
     VoidCaptcha_SlidePuzzleProvider,
@@ -13,7 +13,7 @@ import {
 export {
     VoidCaptcha,
     VoidCaptcha_DetectProvider,
-    VoidCaptcha_PowProvider,
+    VoidCaptcha_ProofOfWorkProvider,
     VoidCaptcha_PuzzleProvider,
     VoidCaptcha_SimilarImageProvider,
     VoidCaptcha_SlidePuzzleProvider,

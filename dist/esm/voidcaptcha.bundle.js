@@ -36,9 +36,9 @@ function __awaiter(thisArg, _arguments, P, generator) {
 }
 
 const VoidCaptcha = (function (config) {
-    ({
+    const score = {
         current: config.botScore || 20,
-        required: config.requiredBotScore || 5,
+        required: config.botScoreRequired || 5,
         increase(num) {
             this.current += num;
         },
@@ -48,23 +48,22 @@ const VoidCaptcha = (function (config) {
         valid() {
             return this.current <= this.required;
         }
-    });
+    };
     return new (class VoidCaptcha {
-        static ready() {
-            let event = new CustomEvent('VoidCaptcha::loaded');
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', window.dispatchEvent.bind(null, event));
-            }
-            else {
-                setTimeout(window.dispatchEvent.bind(null, event), 10);
-            }
-        }
         static get config() {
             return {
-                providers: [],
                 botScore: 20,
-                requiredBotScore: 5,
-                url: null
+                botScoreRequired: 5,
+                callbackHeaders: null,
+                callbackUrl: null,
+                callToValidate: false,
+                providers: null,
+                statusError: 'An error occurred, please try again',
+                statusInvalid: 'Verification failed, please try again',
+                statusLoading: 'Evaluating, please wait...',
+                statusPuzzle: 'Please solve the puzzle below',
+                statusValid: 'You\'re human',
+                statusVerify: 'Click to verify you\'re human',
             };
         }
         constructor(config) {
@@ -76,9 +75,45 @@ const VoidCaptcha = (function (config) {
                 throw new Error('VoidCaptcha requires at least one active provider.');
             }
             this.config = Object.assign({}, VoidCaptcha.config, config);
+            this.events = {};
             this.active = active;
+            this.passive = [...config.providers].filter(provider => provider.passive);
         }
-        create(selector) {
+        curl(action, root) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let formData = new FormData;
+                formData.set('void[data][width]', '250');
+                formData.set('void[data][height]', '300');
+                for (let provider of this.config.providers) {
+                    formData.set('void[providers][]', provider.name);
+                }
+                formData.set('void[session]', root.dataset.voidCaptcha);
+                let headers = new Headers();
+                headers.append('DNT', '1');
+                headers.append('X-Requested-With', 'XMLHttpRequest');
+                headers.append('Via', 'VoidCaptcha');
+                if (this.config.callbackHeaders && typeof this.config.callbackHeaders === 'object') {
+                    for (const [key, val] of Object.entries(this.config.callbackHeaders)) {
+                        headers.append(key, val);
+                    }
+                }
+                let response = yield fetch(this.config.callbackUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: headers
+                });
+                let result = null;
+                try {
+                    result = yield response.json();
+                }
+                catch (e) {
+                    this.trigger('error', root);
+                    return false;
+                }
+                return result;
+            });
+        }
+        assign(selector) {
             if (typeof selector === 'string') {
                 selector = document.querySelectorAll(selector);
             }
@@ -86,41 +121,114 @@ const VoidCaptcha = (function (config) {
                 selector = [selector];
             }
             if (!('length' in selector) || selector.length === 0) {
-                throw new Error('The passed selector does not match or contain any valid element.');
+                throw new Error('The passed selector does not match or contain any valid HTML element.');
             }
-            [...selector].map(root => {
-                root.classList.add('void-captcha');
-                root.classList.add('pending');
-                root.append(...this.renderHidden(root));
-                root.append(...this.renderField(root));
-                root.append(...this.renderPopover(root));
-                root.addEventListener('click', this.open.bind(this, root));
-            });
+            [...selector].map(this.init.bind(this));
         }
-        renderHidden(root) {
+        init(root) {
+            root.classList.add('void-captcha');
+            root.dataset.voidCaptchaState = 'loading';
             let session = document.createElement('INPUT');
             session.type = 'hidden';
             session.name = (root.dataset.name || 'void') + '[session]';
             session.value = root.dataset.voidCaptcha;
+            root.appendChild(session);
             let checksum = document.createElement('INPUT');
             checksum.type = 'hidden';
             checksum.name = (root.dataset.name || 'void') + '[checksum]';
             checksum.value = '';
-            return [session, checksum];
-        }
-        renderField(root) {
+            root.appendChild(checksum);
             let field = document.createElement('DIV');
             field.className = `void-captcha-field`;
             field.innerHTML = `
-                <label><span class="status-pending"></span> Click to Verify</label>
-                <a href="https://voidcapture.com" target="_blank">Powered by VoidCapture</a>
+                <label>${this.config.statusVerify}</label>
+                <a href="https://voidcaptcha.com" target="_blank">Powered by VoidCaptcha</a>
             `;
-            return [field];
+            root.appendChild(field);
+            for (const provider of this.passive) {
+                provider.init();
+            }
+            for (const provider of this.active) {
+                provider.init();
+            }
+            root.addEventListener('click', this.onClick.bind(this, root));
+            this.trigger('init', root);
+            return root;
+        }
+        onClick(root, event) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (root.dataset.voidCaptchaState === 'completed') {
+                    return;
+                }
+                if (root.dataset.voidCaptchaState === 'success') {
+                    return;
+                }
+                if (root.dataset.voidCaptchaState === 'error') {
+                    root.dataset.voidCaptchaState = 'loading';
+                }
+                if (root.dataset.voidCaptchaState === 'loading') {
+                    root.dataset.voidCaptchaState = 'pending';
+                    root.querySelector('label').innerText = this.config.statusLoading;
+                    let result = yield this.curl('request', root);
+                    if (result === false) {
+                        root.dataset.voidCaptchaState = 'error';
+                        root.querySelector('label').innerText = this.config.statusError;
+                        return;
+                    }
+                    setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                        if (this.passive.length > 0) {
+                            let botScore = Object.assign({}, score);
+                            for (const provider of this.passive) {
+                                botScore = yield provider.process(botScore);
+                            }
+                            if (botScore.valid()) {
+                                root.dataset.voidCaptchaState = 'success';
+                                root.querySelector('label').innerText = this.config.statusValid;
+                                return;
+                            }
+                        }
+                        console.log(result);
+                        this.active[result.provider];
+                    }), 10);
+                }
+            });
+        }
+        request(root) {
+        }
+        opens(root) {
+            if (root.dataset.voidCaptchaState === 'pending') {
+                this.render(root);
+            }
+            root.dataset.voidCaptchaState = 'open';
+        }
+        render(root) {
+            root.dataset.voidCaptchaState = 'loading';
+        }
+        closes(root) {
+            root.dataset.voidCaptchaState = 'open';
         }
         renderPopover(root) {
             let popover = document.createElement('DIV');
             popover.className = `void-captcha-popover`;
-            popover.innerHTML = `<canvas width="200" height="200" class="void-captcha-puzzle"></canvas>`;
+            popover.innerHTML = `
+                <canvas width="250" height="300" class="void-captcha-puzzle"></canvas>
+                
+                <div class="void-captcha-actions">
+                    <button type="button" data-void="reload">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        <span>Reload</span>
+                    </button>
+                    <button type="button" data-void="close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                        </svg>
+                        <span>Close</span>
+                    </button>
+                </div>
+            `;
             return [popover];
         }
         open(root, event) {
@@ -132,14 +240,14 @@ const VoidCaptcha = (function (config) {
                 let canvas = root.querySelector('CANVAS');
                 let providers = {};
                 let formData = new FormData;
-                formData.set('void[data][width]', '200');
-                formData.set('void[data][height]', '200');
+                formData.set('void[data][width]', '250');
+                formData.set('void[data][height]', '300');
                 for (let provider of this.config.providers) {
                     providers[provider.name] = provider;
                     formData.set('void[providers][]', provider.name);
                 }
                 formData.set('void[session]', root.dataset.voidCaptcha);
-                let result = yield fetch(this.config.url, {
+                let result = yield fetch(this.config.callbackUrl, {
                     method: 'POST',
                     body: formData
                 }).then(response => response.json());
@@ -147,17 +255,16 @@ const VoidCaptcha = (function (config) {
                     let field = root.querySelector('input[type="hidden"][name$="[checksum]"]');
                     field.value = value;
                 };
-                const reload = function () {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        formData.delete('void[providers][]');
-                        formData.set('void[providers][]', result.provider);
-                        return yield fetch(this.config.url, {
-                            method: 'POST',
-                            body: formData
-                        }).then(response => response.json());
-                    });
-                };
+                const reload = () => __awaiter(this, void 0, void 0, function* () {
+                    result = yield fetch(this.config.callbackUrl, {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => response.json());
+                    providers[result.provider].draw(canvas, result.response, reload, write);
+                });
                 providers[result.provider].draw(canvas, result.response, reload, write);
+                root.querySelector('button[data-void="reload"]').addEventListener('click', reload);
+                root.querySelector('button[data-void="close"]').addEventListener('click', close);
                 root.classList.remove('loading');
                 root.classList.add('waiting');
                 root.classList.add('open');
@@ -169,6 +276,26 @@ const VoidCaptcha = (function (config) {
         }
         validate() {
         }
+        trigger(event, root) {
+            if (!(event in this.events)) {
+                return;
+            }
+            for (const callback of this.events[event]) {
+                callback.call(window, this, root);
+            }
+        }
+        on(event, callback) {
+            if (!(event in this.events)) {
+                this.events[event] = [];
+            }
+            this.events[event].push(callback);
+        }
+        off(event, callback) {
+            let index;
+            if (event in this.events && (index = this.events[event].indexOf(callback)) >= 0) {
+                this.events[event].splice(index, 1);
+            }
+        }
     })(config);
 });
 
@@ -179,18 +306,265 @@ class VoidCaptcha_DetectProvider {
     get passive() {
         return true;
     }
+    get userAgentRegex() {
+        return {
+            'high': [
+                'always(.*)online',
+                'archiver',
+                'browsershot',
+                'crawler',
+                'diagnostic',
+                '(down|up)time',
+                'indexer',
+                'monitoring',
+                'scanner',
+                'sp(i|y)der',
+                'aboundex',
+                'addthis',
+                'alexa',
+                'ahref',
+                'arachni',
+                'archive\.org',
+                'butterfly',
+                'cloudflare',
+                'coccoc',
+                'curios',
+                'domain(.+)',
+                'duckduck',
+                'ezoom',
+                'let\'?s(.*)encrypt',
+                'httpmon',
+                'outbrain',
+                'pinterest',
+                'postm(a|e)n',
+                'quora',
+                'yandex',
+            ].join('|'),
+            'normal': [
+                'archive',
+                'ask(.+)',
+                'audit',
+                'backlink',
+                'batch',
+                '(.+)bot',
+                'checker',
+                'collect',
+                'diagnose',
+                'extractor',
+                'fetch',
+                'generator',
+                'grab',
+                'headless',
+                'http',
+                'hunter',
+                'lookup',
+                'index',
+                'insight',
+                'inspector',
+                'monitor',
+                'optimize',
+                'probe',
+                'provider',
+                'proxy',
+                'review',
+                'riddle',
+                'scan',
+                'schedule',
+                'scrap',
+                'screenshot',
+                'search',
+                'seeker',
+                'service',
+                'share',
+                'sucker',
+                'synthetics',
+                'testing',
+                'transcoder',
+                'validator',
+                'veri(f|t)y',
+                'amazon',
+                'apache',
+                'facebook',
+                'feedburner',
+                'feedly',
+                'feedpin',
+                'gmail',
+                'hubspot',
+                'kaspersky',
+                'linked',
+                'mastodon',
+                'php',
+                'python',
+                'reddit',
+                'shopify',
+                'torrent',
+                'twitter',
+                'W3C\_',
+                'wordpress',
+            ].join('|'),
+            'low': [
+                '\.com',
+                'agent',
+                'blog',
+                'bin',
+                'bot',
+                'cache',
+                'data',
+                'e?mail',
+                'engine',
+                'explorer',
+                'favicon',
+                'feed',
+                'filter',
+                'guide',
+                'improve',
+                'modified',
+                'online',
+                'parse',
+                'preview',
+                'reader',
+                'rss',
+                'seo',
+                'server',
+                'shop',
+                'site',
+                'sql',
+                'scrap',
+                'ssl',
+                'stats?(istic)?',
+                'wiki',
+                'google'
+            ].join('|')
+        };
+    }
+    constructor() {
+        this.rules = {
+            userAgent: {
+                malicious: 50,
+                suspicious: 25,
+                strange: 10,
+                empty: 10,
+                valid: -5
+            },
+        };
+    }
     init() {
+        this.detectUserAgent();
+        this.detectBrowserAndDevice();
+        {
+            this.startUserObserver();
+        }
+    }
+    detectUserAgent() {
+        let userAgent = navigator.userAgent.trim();
+        if (userAgent.length) ;
+        return 1;
+    }
+    detectBrowserAndDevice() {
+        /headless/.test(navigator.userAgent) ? 40 : 0;
+        if ((window.screen['width'] || 0) === 800 && (window.screen['height'] || 0) === 600) {
+            if (window.screen.orientation['type'].indexOf('portrait') === 0 && window.outerWidth == 800 && window.outerHeight === 600) ;
+        }
+        if ((navigator.plugins || []).length === 0) ;
+        return 1;
+    }
+    startUserObserver() {
+    }
+    process(score) {
+        return new Promise((resolve, reject) => {
+            resolve(score);
+        });
     }
 }
 
-class VoidCaptcha_PowProvider {
+class VoidCaptcha_ProofOfWorkProvider {
     get name() {
-        return 'pow';
+        return 'proof-of-work';
     }
     get passive() {
         return true;
     }
-    init() {
+    constructor(difficulty = 4, timeout = 20000) {
+        this.block = null;
+        this.difficulty = difficulty;
+        this.timeout = timeout;
+    }
+    init(config) {
+        this.block = 'data';
+        this.difficulty = 4;
+        this.timeout = 20 * 1000;
+    }
+    process(score) {
+        return new Promise((resolve, reject) => {
+            let webWorkerURL = URL.createObjectURL(new Blob([
+                '(', this.webWorker(), ')()'
+            ], { type: 'application/javascript' }));
+            let worker = new Worker(webWorkerURL);
+            worker.onmessage = (event) => {
+                let hash = event.data.hash;
+                let difficulty = event.data.difficulty;
+                let startsWith = hash.substr(0, difficulty) === Array(difficulty + 1).join('0');
+                let lastNumber = parseInt(hash.substr(-1));
+                if (startsWith && !isNaN(lastNumber)) {
+                    score.decrease(20);
+                }
+                worker.terminate();
+                resolve(score);
+            };
+            worker.onerror = (event) => {
+                worker.terminate();
+                resolve(score);
+            };
+            worker.postMessage({
+                block: this.block,
+                difficulty: this.difficulty,
+                timeout: this.timeout
+            });
+            URL.revokeObjectURL(webWorkerURL);
+        });
+    }
+    webWorker() {
+        return function () {
+            addEventListener('message', (event) => {
+                let block = event.data.block;
+                let difficulty = event.data.difficulty;
+                let timeoutTime = event.data.timeout;
+                let hash;
+                let nonce = 0;
+                let encoder = new TextEncoder;
+                let timeout = false;
+                let timeStart = Date.now();
+                function check(value) {
+                    hash = Array.from(new Uint8Array(value)).map(c => c.toString(16).padStart(2, '0')).join('');
+                    let startsWith = hash.substr(0, difficulty) === Array(difficulty + 1).join('0');
+                    let lastNumber = parseInt(hash.substr(-1));
+                    if (startsWith && !isNaN(lastNumber)) {
+                        report();
+                    }
+                    else {
+                        calculate();
+                    }
+                }
+                function report() {
+                    postMessage({
+                        data: event.data,
+                        block: block,
+                        difficulty: difficulty,
+                        hash: hash,
+                        time: Date.now() - timeStart
+                    });
+                }
+                function calculate() {
+                    if (timeout) {
+                        return report();
+                    }
+                    let buffer = encoder.encode(hash + (nonce++));
+                    crypto.subtle.digest('SHA-512', buffer.buffer).then(check, report);
+                }
+                setTimeout(() => { timeout = true; }, timeoutTime);
+                calculate();
+            });
+        }.toString();
     }
 }
 
@@ -241,7 +615,7 @@ class VoidCaptcha_PuzzleProvider {
 
 class VoidCaptcha_SimilarImageProvider {
     constructor() {
-        this.placeholder = 'Select  all similar images';
+        this.placeholder = 'Select all similar images';
     }
     get name() {
         return 'similar-image';
@@ -251,10 +625,29 @@ class VoidCaptcha_SimilarImageProvider {
     }
     init() {
     }
-    draw(canvas, response) {
+    draw(canvas, response, reload, write) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        const image = new Image();
+        image.onload = () => {
+            this.ctx.drawImage(image, 0, 0);
+        };
+        image.src = typeof response === 'string' ? response : '';
         let label = canvas.parentElement.previousElementSibling.querySelector('label');
+        label.contentEditable = 'true';
         label.innerText = '';
         label.dataset.placeholder = this.placeholder;
+        label.focus();
+        label.addEventListener('keyup', (event) => {
+            let value = label.innerText.trim();
+            if (value.length > 0) {
+                label.dataset.placeholder = '';
+            }
+            else {
+                label.dataset.placeholder = this.placeholder;
+            }
+            write(value);
+        });
     }
 }
 
@@ -316,8 +709,13 @@ class VoidCaptcha_TextProvider {
     init() {
     }
     draw(canvas, response, reload, write) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
+        if (typeof this.ctx !== 'undefined') {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        else {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+        }
         const image = new Image();
         image.onload = () => {
             this.ctx.drawImage(image, 0, 0);
@@ -330,16 +728,10 @@ class VoidCaptcha_TextProvider {
         label.focus();
         label.addEventListener('keyup', (event) => {
             let value = label.innerText.trim();
-            if (value.length > 0) {
-                label.dataset.placeholder = '';
-            }
-            else {
-                label.dataset.placeholder = this.placeholder;
-            }
             write(value);
         });
     }
 }
 
-export { VoidCaptcha, VoidCaptcha_DetectProvider, VoidCaptcha_PowProvider, VoidCaptcha_PuzzleProvider, VoidCaptcha_SimilarImageProvider, VoidCaptcha_SlidePuzzleProvider, VoidCaptcha_TextProvider };
+export { VoidCaptcha, VoidCaptcha_DetectProvider, VoidCaptcha_ProofOfWorkProvider, VoidCaptcha_PuzzleProvider, VoidCaptcha_SimilarImageProvider, VoidCaptcha_SlidePuzzleProvider, VoidCaptcha_TextProvider };
 //# sourceMappingURL=voidcaptcha.bundle.js.map
