@@ -8,10 +8,14 @@ import type {
     VoidCaptcha_Events, 
     VoidCaptcha_LocaleStrings, 
     VoidCaptcha_PassiveProvider, 
+    VoidCaptcha_Response, 
     VoidCaptcha_Selector
 } from "../types";
 
-type VoidCaptcha_RequiredConfig = {providers: VoidCaptcha_Config['providers'], url: VoidCaptcha_Config['callbackUrl']} & Partial<VoidCaptcha_Config>;
+type VoidCaptcha_RequiredConfig = {
+    providers: VoidCaptcha_Config['providers'], 
+    url: VoidCaptcha_Config['callbackUrl'] 
+} & Partial<VoidCaptcha_Config>;
 
 const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
     const score: VoidCaptcha_BotScore = {
@@ -74,10 +78,15 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
          * @param config VoidCaptcha configuration.
          */
         public constructor(config: VoidCaptcha_RequiredConfig) {
-            let active;
+            let active = [];
+            let passive = [];
 
             if (config.providers instanceof Array) {
-                active = [...config.providers].filter(provider => !provider.passive);
+                config.providers.forEach(provider => {
+                    (provider.passive ? passive : active).push(provider);
+                });
+            } else {
+                active = config.providers;
             }
             if (active.length === 0) {
                 throw new Error('VoidCaptcha requires at least one active provider.');
@@ -86,7 +95,7 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
             this.config = Object.assign({}, VoidCaptchaInstance.config, config);
             this.events = {};
             this.active = active;
-            this.passive = [...config.providers].filter(provider => provider.passive) as VoidCaptcha_PassiveProvider[];
+            this.passive = passive;
         }
 
         /**
@@ -114,11 +123,14 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
          * @param action 
          */
          private async curl(action: 'request' | 'verify', root: HTMLElement) {
+            let name = root.dataset.name || 'void';
+
+            // Set FormData
             let formData = new FormData;
-            formData.set('void[data][width]', '250');
-            formData.set('void[data][height]', '300');
+            formData.set(`${name}[canvas][width]`, '250');
+            formData.set(`${name}[canvas][height]`, '300');
             for (let provider of this.config.providers) {
-                formData.set('void[providers][]', provider.name);
+                formData.set(`${name}[providers][${provider.passive ? 'passive' : 'active'}][]`, provider.name);
             }
             formData.set('void[session]', root.dataset.voidCaptcha);
 
@@ -237,14 +249,21 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
                 root.querySelector('label').innerText = this.trans('loading');
 
                 // Invalid Response
-                let result = await this.curl('request', root);
-                if (result === false) {
+                let response = await this.curl('request', root) as false|VoidCaptcha_Response;
+                if (response === false) {
                     root.dataset.voidCaptchaState = 'error';
                     root.querySelector('label').innerText = this.trans('error');
                     return;
                 }
 
-                // Passive Provider
+                // Response Error
+                if (!response.success) {
+                    root.dataset.voidCaptchaState = 'error';
+                    root.querySelector('label').innerText = this.trans('error');
+                    return;
+                }
+
+                // Process Providers
                 setTimeout(async () => {
                     if (this.passive.length > 0) {
                         let botScore = { ...score };
@@ -257,10 +276,18 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
                             return;
                         }
                     }
-    
+
                     // Active Provider (Fallback)
-                    console.log(result);
-                    let provider = this.active[result.provider];
+                    if (response && response.success) {
+                        let providerName: string = Object.keys(response.result.providers)[0];
+                        let provider: VoidCaptcha_ActiveProvider = [...this.active].filter(i => i.name == providerName)[0];
+
+                        const write = function(value: string) {
+                            let field = root.querySelector('input[type="hidden"][name$="[checksum]"]') as HTMLInputElement;
+                            field.value = value;
+                        };
+                        provider.draw(root.querySelector('canvas'), response, write);
+                    }
                 }, 10);
             }
         }

@@ -34,42 +34,71 @@ export interface VoidCaptcha_BotScore {
     
 }
 
-export interface VoidCaptcha_LocaleStrings {
+export interface VoidCaptcha_Request {
 
     /**
-     * Captcha error occured
-     * @default en An error occurred, please try again
+     * Canvas Dimensions - Used for back-end image rendering
      */
-    error: string;
-    
-    /**
-     * Verification failed, user must click again
-     * @default en Verification failed, please try again
-     */
-    invalid: string;
+    canvas: {
+        width: number | string;
+        height: number | string;
+    },
 
     /**
-     * Solving passive provider / loading Captcha Puzzle from Back-End
-     * @default en Evaluating, please wait...
+     * List of active and passive providers - Used for back-end calculation
      */
-    loading: string;
-    
+    providers: {
+        active: string[];
+        passive: string[];
+    },
+
     /**
-     * Captcha Puzzle must been solved
-     * @default en Please solve the puzzle below
+     * Current CAPTCHA session key
      */
-    puzzle: string;
-    
+    session: string;
+
+}
+
+export type VoidCaptcha_Response = {
+
     /**
-     * Captcha has been solved
-     * @default end You're human
+     * HTTP Status Code
      */
-    valid: string;
-    
+    status: number;
+
     /**
-     * Initial message
-     * @default en Click to verify you're human
+     * Boolean status state
      */
-    verify: string;
+    success: true;
+
+    /**
+     * Response Data
+     */
+    result: {
+        session: string;
+        providers: { [key: string]: unknown };
+    }
+
+} | {
+    
+
+    /**
+     * HTTP Status Code
+     */
+    status: number;
+
+    /**
+     * Boolean status state
+     */
+    success: false;
+
+    /**
+     * Response Data
+     */
+    result: {
+        session?: string;
+        message: string;
+        details?: unknown;
+    }
 
 }

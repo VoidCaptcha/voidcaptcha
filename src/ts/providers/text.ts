@@ -1,4 +1,7 @@
-import { VoidCaptcha_ActiveProvider } from "src/types";
+import type {
+    VoidCaptcha_ActiveProvider, 
+    VoidCaptcha_Response 
+} from "src/types";
 
 class VoidCaptcha_TextProvider implements VoidCaptcha_ActiveProvider {
 
@@ -31,8 +34,9 @@ class VoidCaptcha_TextProvider implements VoidCaptcha_ActiveProvider {
     /**
      * Draw Provider (for active providers only)
      */
-    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void
+    draw(canvas: HTMLCanvasElement, response: VoidCaptcha_Response, write: (checksum: string) => void): void
     {
+        console.log(response);
         if (typeof this.ctx !== 'undefined') {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         } else {

@@ -1,4 +1,7 @@
-import { VoidCaptcha_ActiveProvider } from "src/types";
+import type { 
+    VoidCaptcha_ActiveProvider, 
+    VoidCaptcha_Response
+} from "src/types";
 
 class VoidCaptcha_SimilarImageProvider implements VoidCaptcha_ActiveProvider {
 
@@ -31,7 +34,7 @@ class VoidCaptcha_SimilarImageProvider implements VoidCaptcha_ActiveProvider {
     /**
      * Draw Provider (for active providers only)
      */
-    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void
+    draw(canvas: HTMLCanvasElement, response: VoidCaptcha_Response, write: (checksum: string) => void): void
     {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');

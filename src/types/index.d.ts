@@ -1,4 +1,5 @@
 
-export * from './common';
-export * from './config';
-export * from './provider';
+export * from './common.d';
+export * from './config.d';
+export * from './locale.d';
+export * from './provider.d';

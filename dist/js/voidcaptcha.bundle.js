@@ -68,9 +68,15 @@
                 };
             }
             constructor(config) {
-                let active;
+                let active = [];
+                let passive = [];
                 if (config.providers instanceof Array) {
-                    active = [...config.providers].filter(provider => !provider.passive);
+                    config.providers.forEach(provider => {
+                        (provider.passive ? passive : active).push(provider);
+                    });
+                }
+                else {
+                    active = config.providers;
                 }
                 if (active.length === 0) {
                     throw new Error('VoidCaptcha requires at least one active provider.');
@@ -78,7 +84,7 @@
                 this.config = Object.assign({}, VoidCaptchaInstance.config, config);
                 this.events = {};
                 this.active = active;
-                this.passive = [...config.providers].filter(provider => provider.passive);
+                this.passive = passive;
             }
             trans(key, locale) {
                 var _a;
@@ -98,11 +104,12 @@
             }
             curl(action, root) {
                 return __awaiter(this, void 0, void 0, function* () {
+                    let name = root.dataset.name || 'void';
                     let formData = new FormData;
-                    formData.set('void[data][width]', '250');
-                    formData.set('void[data][height]', '300');
+                    formData.set(`${name}[canvas][width]`, '250');
+                    formData.set(`${name}[canvas][height]`, '300');
                     for (let provider of this.config.providers) {
-                        formData.set('void[providers][]', provider.name);
+                        formData.set(`${name}[providers][${provider.passive ? 'passive' : 'active'}][]`, provider.name);
                     }
                     formData.set('void[session]', root.dataset.voidCaptcha);
                     let headers = new Headers();
@@ -186,8 +193,13 @@
                     if (root.dataset.voidCaptchaState === 'loading') {
                         root.dataset.voidCaptchaState = 'pending';
                         root.querySelector('label').innerText = this.trans('loading');
-                        let result = yield this.curl('request', root);
-                        if (result === false) {
+                        let response = yield this.curl('request', root);
+                        if (response === false) {
+                            root.dataset.voidCaptchaState = 'error';
+                            root.querySelector('label').innerText = this.trans('error');
+                            return;
+                        }
+                        if (!response.success) {
                             root.dataset.voidCaptchaState = 'error';
                             root.querySelector('label').innerText = this.trans('error');
                             return;
@@ -204,8 +216,15 @@
                                     return;
                                 }
                             }
-                            console.log(result);
-                            this.active[result.provider];
+                            if (response && response.success) {
+                                let providerName = Object.keys(response.result.providers)[0];
+                                let provider = [...this.active].filter(i => i.name == providerName)[0];
+                                const write = function (value) {
+                                    let field = root.querySelector('input[type="hidden"][name$="[checksum]"]');
+                                    field.value = value;
+                                };
+                                provider.draw(root.querySelector('canvas'), response, write);
+                            }
                         }), 10);
                     }
                 });
@@ -748,6 +767,7 @@
         init() {
         }
         draw(canvas, response, write) {
+            console.log(response);
             if (typeof this.ctx !== 'undefined') {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             }

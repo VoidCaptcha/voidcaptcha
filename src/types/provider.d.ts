@@ -1,4 +1,7 @@
-import { VoidCaptcha_BotScore } from "./common";
+import { 
+    VoidCaptcha_BotScore, 
+    VoidCaptcha_Response 
+} from "./common";
 import { VoidCaptcha_Config } from "./config";
 
 export interface VoidCaptcha_BaseProvider {
@@ -34,7 +37,7 @@ export interface VoidCaptcha_ActiveProvider extends VoidCaptcha_BaseProvider {
      * @param response The main server response containing the puzzle details.
      * @param write A callback function to write the puzzle solution.
      */
-    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void;
+    draw(canvas: HTMLCanvasElement, response: VoidCaptcha_Response, write: (checksum: string) => void): void;
 
 }
 
