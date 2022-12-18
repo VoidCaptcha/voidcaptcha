@@ -1,12 +1,12 @@
 /*!
-|  @voidcaptcha/core - VoidCaptcha is a free and open source multi-solution CAPTCHA library to keep your forms bot-free.
-|  @file       dist/js/voidcaptcha.bundle.js
-|  @version    0.1.0
-|  @author     Sam <sam@rat.md> (https://rat.md)
-|  
-|  @website    https:/void-captcha.com/
-|  @license    MIT License
-|  @copyright  Copyright © 2021 - 2022 rat.md <info@rat.md>
+*  @voidcaptcha/core - VoidCaptcha is a free and open source multi-solution CAPTCHA library to keep your forms bot-free.
+*  @file       dist/js/voidcaptcha.bundle.js
+*  @version    0.1.0
+*  @author     Sam <sam@rat.md> (https://rat.md)
+*  
+*  @website    https:/void-captcha.com/
+*  @license    MIT License
+*  @copyright  Copyright © 2021 - 2022 rat.md <info@rat.md>
 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -54,21 +54,17 @@
                 return this.current <= this.required;
             }
         };
-        return new (class VoidCaptcha {
+        return new (class VoidCaptchaInstance {
             static get config() {
+                let locale = [...navigator.languages] || ['en'];
                 return {
                     botScore: 20,
                     botScoreRequired: 5,
                     callbackHeaders: null,
                     callbackUrl: null,
                     callToValidate: false,
-                    providers: null,
-                    statusError: 'An error occurred, please try again',
-                    statusInvalid: 'Verification failed, please try again',
-                    statusLoading: 'Evaluating, please wait...',
-                    statusPuzzle: 'Please solve the puzzle below',
-                    statusValid: 'You\'re human',
-                    statusVerify: 'Click to verify you\'re human',
+                    locale,
+                    providers: null
                 };
             }
             constructor(config) {
@@ -79,10 +75,26 @@
                 if (active.length === 0) {
                     throw new Error('VoidCaptcha requires at least one active provider.');
                 }
-                this.config = Object.assign({}, VoidCaptcha.config, config);
+                this.config = Object.assign({}, VoidCaptchaInstance.config, config);
                 this.events = {};
                 this.active = active;
                 this.passive = [...config.providers].filter(provider => provider.passive);
+            }
+            trans(key, locale) {
+                var _a;
+                locale = typeof locale === 'undefined' ? (this.config.locale || 'en') : locale;
+                if (locale instanceof Array) {
+                    let temp = key;
+                    for (let i = 0; i < locale.length; i++) {
+                        if ((temp = this.trans(key, locale[i])) !== key) {
+                            break;
+                        }
+                    }
+                    return temp;
+                }
+                else {
+                    return (_a = VoidCaptcha['Locales'][locale][key]) !== null && _a !== void 0 ? _a : key;
+                }
             }
             curl(action, root) {
                 return __awaiter(this, void 0, void 0, function* () {
@@ -146,15 +158,15 @@
                 let field = document.createElement('DIV');
                 field.className = `void-captcha-field`;
                 field.innerHTML = `
-                <label>${this.config.statusVerify}</label>
+                <label>${this.trans('verify')}</label>
                 <a href="https://voidcaptcha.com" target="_blank">Powered by VoidCaptcha</a>
             `;
                 root.appendChild(field);
                 for (const provider of this.passive) {
-                    provider.init();
+                    provider.init(Object.assign({}, this.config));
                 }
                 for (const provider of this.active) {
-                    provider.init();
+                    provider.init(Object.assign({}, this.config));
                 }
                 root.addEventListener('click', this.onClick.bind(this, root));
                 this.trigger('init', root);
@@ -173,11 +185,11 @@
                     }
                     if (root.dataset.voidCaptchaState === 'loading') {
                         root.dataset.voidCaptchaState = 'pending';
-                        root.querySelector('label').innerText = this.config.statusLoading;
+                        root.querySelector('label').innerText = this.trans('loading');
                         let result = yield this.curl('request', root);
                         if (result === false) {
                             root.dataset.voidCaptchaState = 'error';
-                            root.querySelector('label').innerText = this.config.statusError;
+                            root.querySelector('label').innerText = this.trans('error');
                             return;
                         }
                         setTimeout(() => __awaiter(this, void 0, void 0, function* () {
@@ -188,7 +200,7 @@
                                 }
                                 if (botScore.valid()) {
                                     root.dataset.voidCaptchaState = 'success';
-                                    root.querySelector('label').innerText = this.config.statusValid;
+                                    root.querySelector('label').innerText = this.trans('valid');
                                     return;
                                 }
                             }
@@ -265,9 +277,9 @@
                             method: 'POST',
                             body: formData
                         }).then(response => response.json());
-                        providers[result.provider].draw(canvas, result.response, reload, write);
+                        providers[result.provider].draw(canvas, result.response, write);
                     });
-                    providers[result.provider].draw(canvas, result.response, reload, write);
+                    providers[result.provider].draw(canvas, result.response, write);
                     root.querySelector('button[data-void="reload"]').addEventListener('click', reload);
                     root.querySelector('button[data-void="close"]').addEventListener('click', close);
                     root.classList.remove('loading');
@@ -303,6 +315,28 @@
             }
         })(config);
     });
+    const Locales = {};
+    VoidCaptcha['Locales'] = Locales;
+    const Providers = {};
+    VoidCaptcha['Providers'] = Providers;
+
+    var LocaleDE = {
+        error: 'Ein Fehler ist aufgetreten, versuche es erneut',
+        invalid: 'Verifizierung fehlgeschlagen, versuche es erneut',
+        loading: 'Evaluierung, bitte warte...',
+        puzzle: 'Bitte löse das Puzzle unterhalb',
+        valid: 'Du bist ein Mensch',
+        verify: 'Klicke um zu prüfen ob du ein Mensch bist'
+    };
+
+    var LocaleEN = {
+        error: 'An error occurred, please try again',
+        invalid: 'Verification failed, please try again',
+        loading: 'Evaluating, please wait...',
+        puzzle: 'Please solve the puzzle below',
+        valid: 'You\'re human',
+        verify: 'Click to verify you\'re human',
+    };
 
     class VoidCaptcha_DetectProvider {
         get name() {
@@ -585,7 +619,52 @@
         }
         init() {
         }
-        draw(canvas, response, reload, write) {
+        draw(canvas, response, write) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.ctx.save();
+            const image = new Image();
+            image.onload = () => {
+                this.ctx.drawImage(image, 0, 0);
+            };
+            image.src = response['source'];
+            const piece = new Image();
+            piece.onload = (event) => {
+                this.ctx.drawImage(piece, 0, 30);
+            };
+            piece.src = response['piece'];
+            let label = canvas.parentElement.previousElementSibling.querySelector('label');
+            label.contentEditable = 'true';
+            label.innerText = '';
+            label.dataset.placeholder = this.placeholder;
+            let slider = document.createElement('INPUT');
+            slider.type = 'range';
+            slider.value = '0';
+            slider.min = '0';
+            slider.max = '100';
+            slider.addEventListener('input', (event) => {
+                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+                this.ctx.drawImage(image, 0, 0);
+                this.ctx.drawImage(piece, (canvas.width - piece.width) / 100 * parseInt(slider.value), 30);
+                write(((canvas.width - piece.width) / 100 * parseInt(slider.value)).toString());
+            });
+            canvas.parentElement.appendChild(slider);
+        }
+    }
+
+    class VoidCaptcha_PuzzleSlideProvider {
+        constructor() {
+            this.placeholder = 'Slide until the piece fits';
+        }
+        get name() {
+            return 'slide-puzzle';
+        }
+        get passive() {
+            return false;
+        }
+        init() {
+        }
+        draw(canvas, response, write) {
             this.canvas = canvas;
             this.ctx = canvas.getContext('2d');
             this.ctx.save();
@@ -630,7 +709,7 @@
         }
         init() {
         }
-        draw(canvas, response, reload, write) {
+        draw(canvas, response, write) {
             this.canvas = canvas;
             this.ctx = canvas.getContext('2d');
             const image = new Image();
@@ -656,51 +735,6 @@
         }
     }
 
-    class VoidCaptcha_SlidePuzzleProvider {
-        constructor() {
-            this.placeholder = 'Slide until the piece fits';
-        }
-        get name() {
-            return 'slide-puzzle';
-        }
-        get passive() {
-            return false;
-        }
-        init() {
-        }
-        draw(canvas, response, reload, write) {
-            this.canvas = canvas;
-            this.ctx = canvas.getContext('2d');
-            this.ctx.save();
-            const image = new Image();
-            image.onload = () => {
-                this.ctx.drawImage(image, 0, 0);
-            };
-            image.src = response['source'];
-            const piece = new Image();
-            piece.onload = (event) => {
-                this.ctx.drawImage(piece, 0, 30);
-            };
-            piece.src = response['piece'];
-            let label = canvas.parentElement.previousElementSibling.querySelector('label');
-            label.contentEditable = 'true';
-            label.innerText = '';
-            label.dataset.placeholder = this.placeholder;
-            let slider = document.createElement('INPUT');
-            slider.type = 'range';
-            slider.value = '0';
-            slider.min = '0';
-            slider.max = '100';
-            slider.addEventListener('input', (event) => {
-                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                this.ctx.drawImage(image, 0, 0);
-                this.ctx.drawImage(piece, (canvas.width - piece.width) / 100 * parseInt(slider.value), 30);
-                write(((canvas.width - piece.width) / 100 * parseInt(slider.value)).toString());
-            });
-            canvas.parentElement.appendChild(slider);
-        }
-    }
-
     class VoidCaptcha_TextProvider {
         constructor() {
             this.placeholder = 'Enter CAPTCHA Code here';
@@ -713,7 +747,7 @@
         }
         init() {
         }
-        draw(canvas, response, reload, write) {
+        draw(canvas, response, write) {
             if (typeof this.ctx !== 'undefined') {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
@@ -738,12 +772,16 @@
         }
     }
 
+    VoidCaptcha['Locales'] = {
+        de: LocaleDE,
+        en: LocaleEN,
+    };
     VoidCaptcha['Providers'] = {
         Detect: VoidCaptcha_DetectProvider,
         ProofOfWork: VoidCaptcha_ProofOfWorkProvider,
         Puzzle: VoidCaptcha_PuzzleProvider,
+        PuzzleSlide: VoidCaptcha_PuzzleSlideProvider,
         SimilarImage: VoidCaptcha_SimilarImageProvider,
-        SlidePuzzle: VoidCaptcha_SlidePuzzleProvider,
         Text: VoidCaptcha_TextProvider
     };
 

@@ -7,14 +7,14 @@ const { terser } = require('rollup-plugin-terser');
 const pkg = require('./package.json');
 
 const COPYRIGHT = `/*!
-|  ${pkg.name} - ${pkg.description}
-|  @file       ${pkg.main}
-|  @version    ${pkg.version}
-|  @author     ${pkg.author}${pkg.contributors? "\n |\t\t\t\t" + pkg.contributors.join("\n |\t\t\t\t"): ""}
-|  
-|  @website    ${pkg.homepage}
-|  @license    ${pkg.license} License
-|  @copyright  Copyright © 2021 - ${(new Date()).getFullYear()} ${pkg.copyright}
+*  ${pkg.name} - ${pkg.description}
+*  @file       ${pkg.main}
+*  @version    ${pkg.version}
+*  @author     ${pkg.author}${pkg.contributors? "\n |\t\t\t\t" + pkg.contributors.join("\n |\t\t\t\t"): ""}
+*  
+*  @website    ${pkg.homepage}
+*  @license    ${pkg.license} License
+*  @copyright  Copyright © 2021 - ${(new Date()).getFullYear()} ${pkg.copyright}
 */`;
 const COPYSMALL = `/*! ${pkg.name} | @version ${pkg.version} | @license ${pkg.license} | @copyright ${pkg.copyright} */`;
 

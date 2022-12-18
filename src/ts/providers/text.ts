@@ -31,7 +31,7 @@ class VoidCaptcha_TextProvider implements VoidCaptcha_ActiveProvider {
     /**
      * Draw Provider (for active providers only)
      */
-    draw(canvas: HTMLCanvasElement, response: unknown, reload: () => Promise<unknown>, write: (checksum: string) => void): void
+    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void
     {
         if (typeof this.ctx !== 'undefined') {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

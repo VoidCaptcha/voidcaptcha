@@ -1,22 +1,31 @@
 
 import VoidCaptcha from './voidcaptcha';
-import {
-    VoidCaptcha_DetectProvider,
-    VoidCaptcha_ProofOfWorkProvider,
-    VoidCaptcha_PuzzleProvider,
-    VoidCaptcha_SimilarImageProvider,
-    VoidCaptcha_SlidePuzzleProvider,
-    VoidCaptcha_TextProvider
-} from './providers';
 
+import LocaleDE from './locales/de';
+import LocaleEN from './locales/en';
 
-VoidCaptcha['Providers'] = {
-    Detect: VoidCaptcha_DetectProvider,
-    ProofOfWork: VoidCaptcha_ProofOfWorkProvider,
-    Puzzle: VoidCaptcha_PuzzleProvider,
-    SimilarImage: VoidCaptcha_SimilarImageProvider,
-    SlidePuzzle: VoidCaptcha_SlidePuzzleProvider,
-    Text: VoidCaptcha_TextProvider
+import Detect from './providers/detect';
+import ProofOfWork from './providers/proof-of-work';
+import Puzzle from './providers/puzzle';
+import PuzzleSlide from './providers/puzzle-slide';
+import SimilarImage from './providers/similar-image';
+import Text from './providers/text';
+
+// Append Locales
+VoidCaptcha['Locales'] = {
+    de: LocaleDE,
+    en: LocaleEN,
 };
 
+// Append Providers
+VoidCaptcha['Providers'] = {
+    Detect,
+    ProofOfWork,
+    Puzzle,
+    PuzzleSlide,
+    SimilarImage,
+    Text
+};
+
+// Export Module
 export default VoidCaptcha;

@@ -1,6 +1,6 @@
 import { VoidCaptcha_ActiveProvider } from "src/types";
 
-class VoidCaptcha_SlidePuzzleProvider implements VoidCaptcha_ActiveProvider {
+class VoidCaptcha_PuzzleSlideProvider implements VoidCaptcha_ActiveProvider {
 
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -31,7 +31,7 @@ class VoidCaptcha_SlidePuzzleProvider implements VoidCaptcha_ActiveProvider {
     /**
      * Draw Provider (for active providers only)
      */
-    draw(canvas: HTMLCanvasElement, response: unknown, reload: () => Promise<unknown>, write: (checksum: string) => void): void
+    draw(canvas: HTMLCanvasElement, response: unknown, write: (checksum: string) => void): void
     {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -70,4 +70,4 @@ class VoidCaptcha_SlidePuzzleProvider implements VoidCaptcha_ActiveProvider {
 
 }
 
-export default VoidCaptcha_SlidePuzzleProvider;
+export default VoidCaptcha_PuzzleSlideProvider;

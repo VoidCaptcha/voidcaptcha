@@ -2,9 +2,11 @@ import '../scss/index.scss';
 
 import type { 
     VoidCaptcha_ActiveProvider,
+    VoidCaptcha_BaseProvider,
     VoidCaptcha_BotScore,
     VoidCaptcha_Config, 
     VoidCaptcha_Events, 
+    VoidCaptcha_LocaleStrings, 
     VoidCaptcha_PassiveProvider, 
     VoidCaptcha_Selector
 } from "../types";
@@ -29,25 +31,21 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
         }
     };
 
-    return new (class VoidCaptcha {
+    return new (class VoidCaptchaInstance {
 
         /**
          * Default Configuration
          */
         static get config(): VoidCaptcha_Config {
+            let locale = [...navigator.languages] || ['en'];
             return {
                 botScore: 20,
                 botScoreRequired: 5,
                 callbackHeaders: null,
                 callbackUrl: null,
                 callToValidate: false,
-                providers: null,
-                statusError: 'An error occurred, please try again',
-                statusInvalid: 'Verification failed, please try again',
-                statusLoading: 'Evaluating, please wait...',
-                statusPuzzle: 'Please solve the puzzle below',
-                statusValid: 'You\'re human',
-                statusVerify: 'Click to verify you\'re human',
+                locale,
+                providers: null
             }
         }
 
@@ -59,7 +57,7 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
         /**
          * Instance Event Listeners
          */
-        private events: { [key: string]: Array<(captcha: VoidCaptcha, root: HTMLElement) => void> };
+        private events: { [key: string]: Array<(captcha: VoidCaptchaInstance, root: HTMLElement) => void> };
 
         /**
          * Active Providers
@@ -85,10 +83,30 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
                 throw new Error('VoidCaptcha requires at least one active provider.');
             }
 
-            this.config = Object.assign({}, VoidCaptcha.config, config);
+            this.config = Object.assign({}, VoidCaptchaInstance.config, config);
             this.events = {};
             this.active = active;
             this.passive = [...config.providers].filter(provider => provider.passive) as VoidCaptcha_PassiveProvider[];
+        }
+
+        /**
+         * Translate / Localize key
+         * @param key 
+         * @return The localized / translated string.
+         */
+        private trans(key: keyof VoidCaptcha_LocaleStrings, locale?: string|string[]): string {
+            locale = typeof locale === 'undefined' ? (this.config.locale || 'en') : locale;
+            if (locale instanceof Array) {
+                let temp: string = key;
+                for (let i = 0; i < locale.length; i++) {
+                    if ((temp = this.trans(key, locale[i])) !== key) {
+                        break;
+                    }
+                }
+                return temp;
+            } else {
+                return VoidCaptcha['Locales'][locale][key] ?? key;
+            }
         }
 
         /**
@@ -177,19 +195,19 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
             let field = document.createElement('DIV');
             field.className = `void-captcha-field`;
             field.innerHTML = `
-                <label>${this.config.statusVerify}</label>
+                <label>${this.trans('verify')}</label>
                 <a href="https://voidcaptcha.com" target="_blank">Powered by VoidCaptcha</a>
             `;
             root.appendChild(field);
 
             // Initialize passive Providers
             for (const provider of this.passive) {
-                provider.init();
+                provider.init({ ...this.config });
             }
 
             // Initialize active Providers
             for (const provider of this.active) {
-                provider.init();
+                provider.init({ ...this.config });
             }
             
             // Add Event Listener
@@ -216,13 +234,13 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
 
             if (root.dataset.voidCaptchaState === 'loading') {
                 root.dataset.voidCaptchaState = 'pending';
-                root.querySelector('label').innerText = this.config.statusLoading;
+                root.querySelector('label').innerText = this.trans('loading');
 
                 // Invalid Response
                 let result = await this.curl('request', root);
                 if (result === false) {
                     root.dataset.voidCaptchaState = 'error';
-                    root.querySelector('label').innerText = this.config.statusError;
+                    root.querySelector('label').innerText = this.trans('error');
                     return;
                 }
 
@@ -235,7 +253,7 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
                         }
                         if (botScore.valid()) {
                             root.dataset.voidCaptchaState = 'success';
-                            root.querySelector('label').innerText = this.config.statusValid;
+                            root.querySelector('label').innerText = this.trans('valid');
                             return;
                         }
                     }
@@ -349,9 +367,9 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
                     body: formData
                 }).then(response => response.json());
 
-                providers[result.provider].draw(canvas, result.response, reload, write);
+                providers[result.provider].draw(canvas, result.response, write);
             };
-            providers[result.provider].draw(canvas, result.response, reload, write);
+            providers[result.provider].draw(canvas, result.response, write);
 
             root.querySelector('button[data-void="reload"]').addEventListener('click', reload);
             root.querySelector('button[data-void="close"]').addEventListener('click', close);
@@ -402,7 +420,7 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
          * @param event 
          * @param callback 
          */
-        public on(event: VoidCaptcha_Events, callback: (captcha: VoidCaptcha, root: HTMLElement) => void): void {
+        public on(event: VoidCaptcha_Events, callback: (captcha: VoidCaptchaInstance, root: HTMLElement) => void): void {
             if (!(event in this.events)) {
                 this.events[event] = [];
             }
@@ -414,7 +432,7 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
          * @param event 
          * @param callback 
          */
-        public off(event: VoidCaptcha_Events, callback: (captcha: VoidCaptcha, root: HTMLElement) => void): void {
+        public off(event: VoidCaptcha_Events, callback: (captcha: VoidCaptchaInstance, root: HTMLElement) => void): void {
             let index;
             if (event in this.events && (index = this.events[event].indexOf(callback)) >= 0) {
                 this.events[event].splice(index, 1);
@@ -422,6 +440,12 @@ const VoidCaptcha = (function(config: VoidCaptcha_RequiredConfig) {
         }
 
     })(config);
-})
+});
+
+const Locales: { [name: string]: VoidCaptcha_LocaleStrings } = {};
+VoidCaptcha['Locales'] = Locales;
+
+const Providers: { [name: string]: VoidCaptcha_BaseProvider } = {};
+VoidCaptcha['Providers'] = Providers;
 
 export default VoidCaptcha;
